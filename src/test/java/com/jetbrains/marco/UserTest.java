@@ -7,12 +7,10 @@ import org.junit.jupiter.params.provider.CsvFileSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.xmlunit.assertj.XmlAssert;
 
-import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Scanner;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,10 +32,10 @@ class UserTest {
 
     void user_should_be_18_years() {
 	   assertThat(marco.age()).isGreaterThanOrEqualTo(18);
-	   assertThat(marco.disabled()).as("check %s's account status", marco.name()).isFalse();
+	   assertThat(marco.blocked()).as("check %s's blocked status", marco.name()).isFalse();
 	   assertThat(marco.name()).startsWith("Mar");
 
-	   assertThatJson(marco).isEqualTo("{\"name\":\"Marco\",\"age\":18,\"disabled\":false,\"born\":[2004,5,2]}");
+	   assertThatJson(marco).isEqualTo("{\"name\":\"Marco\",\"age\":18,\"blocked\":false,\"born\":[2004,5,2]}");
 	   XmlAssert.assertThat( "<a><b attr=\"abc\"></b></a>").nodesByXPath("//a/b/@attr").exist();
     }
 
