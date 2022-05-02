@@ -34,10 +34,10 @@ class UserTest {
 
     void user_should_be_18_years() {
 	   assertThat(marco.age()).isGreaterThanOrEqualTo(18);
-	   assertThat(marco.disabled()).isFalse();
+	   assertThat(marco.disabled()).as("check %s's account status", marco.name()).isFalse();
 	   assertThat(marco.name()).startsWith("Mar");
 
-	   assertThatJson("{\"a\":1, \"b\":2}").isEqualTo("{b:2, a:1}");
+	   assertThatJson(marco).isEqualTo("{\"name\":\"Marco\",\"age\":18,\"disabled\":false,\"born\":[2004,5,2]}");
 	   XmlAssert.assertThat( "<a><b attr=\"abc\"></b></a>").nodesByXPath("//a/b/@attr").exist();
     }
 
