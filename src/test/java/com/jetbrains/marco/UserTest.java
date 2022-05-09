@@ -1,67 +1,81 @@
 package com.jetbrains.marco;
 
+
+import com.jetbrains.util.Resources;
+import com.jetbrains.util.Xml;
+import net.javacrumbs.jsonunit.assertj.JsonAssertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.xmlunit.assertj.XmlAssert;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Tag("unit")
 @ExtendWith(MockitoExtension.class)
 class UserTest {
 
-    private static User marco;
+    //@Mock
+    User user;
 
     @BeforeEach
-     void setup() {
-	   marco = new User("Marco", 18, false, LocalDate.now().minusYears(18));
-	   System.out.println("setup was called");
+    void setup() {
+      //  user = new User("Marco", 37, false, LocalDate.now().minusYears(37));
+        System.out.println("Setup was called");
+    }
+
+    @AfterEach
+    void cleanup() {
+        user = null;
+        System.out.println("Cleanup was called");
     }
 
     @Test
-    @DisplayName("Marco should be 18 years old, or he cannot go to the movies")
+    @DisplayName("User should be at least 18")
+    void user_should_be_at_least_18() {
+      assertThat(user.age()).isGreaterThanOrEqualTo(18);
 
-    void user_should_be_18_years() {
-	   assertThat(marco.age()).isGreaterThanOrEqualTo(18);
-	   assertThat(marco.blocked()).as("check %s's blocked status", marco.name()).isFalse();
-	   assertThat(marco.name()).startsWith("Mar");
+    /*  assertThat(user.blocked())
+              .as("User %s should be blocked", user.name())
+              .isTrue();*/
+        assertThatJson(user).isEqualTo("{\"name\":\"Marco\",\"age\":37,\"blocked\":false,\"birthDate\":[1985, 5, 4]}");
 
-	   assertThatJson(marco).isEqualTo("{\"name\":\"Marco\",\"age\":18,\"blocked\":false,\"born\":[2004,5,2]}");
-	   XmlAssert.assertThat( "<a><b attr=\"abc\"></b></a>").nodesByXPath("//a/b/@attr").exist();
+        XmlAssert.assertThat( "<a><b attr=\"abc\"></b></a>").nodesByXPath("//a/b/@attr").exist();
+
+
     }
 
-
-    @ParameterizedTest()
+    @ParameterizedTest
+    // @ValueSource(ints = {20, 50, 80})
     @CsvFileSource(resources = "/friends.csv", numLinesToSkip = 1)
-    //@CsvSource("lisa,18"")
-    //@ValueSource(ints = {20, 25, 30})
-    void marcos_friends_should_be_older_than_18(String name, Integer age) {
-	   assertThat(age).isGreaterThanOrEqualTo(18).as(name + " is older than marco!");
+    //@EnumSource()
+    void all_friends_should_at_least_be_18(String name, int age) {
+        assertThat(age).isGreaterThanOrEqualTo(18);
     }
 
     @TestFactory
-    Collection<DynamicTest> dynamicTests() {
-	   final ResourceUtil util = new ResourceUtil();
-	   final List<String> xmlPaths = util.getXMLs("/");
-	   List<DynamicTest> result = new ArrayList<>();
-	   xmlPaths.forEach(xml -> result.add(DynamicTest.dynamicTest(xml, () -> XmlAssert.assertThat(StringUtil.readAsString(xml)).hasXPath("/users/user/name"))));
-	   return result;
+    Collection<DynamicTest> dynamicTestsCreatedThroughCode() {
+        List<Xml> xmls = Resources.toStrings("users.*\\.xml");
+
+        return xmls.stream().map(xml -> DynamicTest.dynamicTest(xml.name(), () -> {
+            XmlAssert.assertThat(xml.content()).hasXPath("/users/user/name");
+        })).collect(Collectors.toList());
     }
 
-
-
-    @AfterEach
-    void shutdown() {
-	   marco = null;
+    @Test
+    void user_should_be_marco() {
+        assertThat(user.name()).startsWith("Mar");
     }
-
 }
